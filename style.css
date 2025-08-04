@@ -9,6 +9,9 @@ body {
 }
 #game-container {
   display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  flex-wrap: wrap;
   gap: 20px;
 }
 #rules {
@@ -17,4 +20,57 @@ body {
 canvas {
   border: 4px solid white;
   background: #222;
+}
+#controls {
+  margin-top: 30px;
+  padding: 15px 20px;
+  background-color: #1e1e1e;
+  color: #f0f0f0;
+  font-family: sans-serif;
+  border-radius: 10px;
+  width: 100%;
+  max-width: 600px;
+  text-align: left;
+  margin-left: auto;
+  margin-right: auto;
+}
+#controls ul {
+  list-style: none;
+  padding: 0;
+}
+#controls li {
+  margin: 5px 0;
+}
+#restart-btn {
+  margin-top: 10px;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+}
+#health-container {
+  width: 150px;
+  height: 30px;
+  background-color: #ddd;
+  border: 2px solid #333;
+  margin: 10px auto;
+  position: relative;
+}
+#health-bar {
+  height: 100%;
+  background-color: #4caf50;
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  transition: width 0.3s ease;
+}
+#health-bar-text {
+  position: absolute;
+  width: 100%;
+  text-align: center;
+  line-height: 30px;
+  font-weight: bold;
+  z-index: 2;
+  color: black;
 }

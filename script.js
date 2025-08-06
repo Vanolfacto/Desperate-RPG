@@ -13,12 +13,14 @@ const player={
     isDead: false
 };
 
-let gameWon=false;
+
+let npcInteracting = false;
+let enemyInteracting = false;
 
 const rules=[
-  "Avoid red tiles.",
-  "Get a weapon before battle.",
-  "Make sure your health bar isn't empty."
+  "Avoid the lava.",
+  "Prepare yourself.",
+  "Defeat the great beast."
 ];
 
 let gameOver = false;
@@ -32,10 +34,14 @@ const images = {
       npc: new Image(),
       enemy: new Image(),
       item: new Image(),
+      lava: new Image()
     };
 
 let imagesLoaded=0;
-const totalImages=Object.keys(images).length;
+const totalImages=Object.keys(images).length+1;
+
+const backgroundImage= new Image();
+backgroundImage.src="assets/first-map.jpg"
 
 const onImageLoad=()=>{
     imagesLoaded++;
@@ -49,20 +55,23 @@ for (let key in images){
     images[key].onload=onImageLoad;
 }
 
+backgroundImage.onload = onImageLoad;
+
 images.player.src = 'assets/player.png';
 images.npc.src = 'assets/npc.png';
-images.enemy.src = 'assets/enemy.png';
+images.enemy.src = 'assets/demon.png';
 images.item.src = 'assets/item.png';
+images.lava.src='assets/lava.jpg';
 
 const map = [
       ['G','G','G','R','G','G','G','G'],
-      ['G','I','G','G','G','R','G','G'],
-      ['G','G','E','G','G','G','G','G'],
       ['G','G','G','G','G','G','G','G'],
+      ['G','G','E','G','G','G','G','G'],
+      ['G','G','G','G','G','G','R','G'],
       ['G','G','G','G','N','G','G','G'],
       ['G','G','G','G','G','G','G','G'],
       ['G','G','G','G','G','G','G','G'],
-      ['G','G','G','G','G','G','G','G']
+      ['G','G','G','G','I','G','G','G']
     ];
 
 const pickRules=()=>{
@@ -73,60 +82,74 @@ const pickRules=()=>{
 
 const drawMap=()=>{
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    let showBubble = false;
+    ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
 
     for (let y = 0; y < mapSize; y++) {
         for (let x = 0; x < mapSize; x++) {
           const tile = map[y][x];
-          ctx.fillStyle = tile === 'R' ? 'red' : tile === 'I' ? 'yellow' : tile === 'E' ? 'black' : tile === 'N' ? 'blue' : 'green';
-          ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
-        
+            //Item
           if (tile === 'I') ctx.drawImage(images.item, x * tileSize, y * tileSize, tileSize, tileSize);
-          if (tile === 'N') ctx.drawImage(images.npc, x * tileSize, y * tileSize, tileSize, tileSize);
-          if (tile === 'E') ctx.drawImage(images.enemy, x * tileSize, y * tileSize, tileSize, tileSize);
+            //NPC
+          if (tile === 'N'){
+            ctx.save();
+            const px = x * tileSize;
+            const py = y * tileSize;
+            if (npcInteracting && player.facing === "ArrowRight") {
+                ctx.translate(px + tileSize, py);
+                ctx.scale(-1, 1);
+                ctx.drawImage(images.npc, 0, 0, tileSize, tileSize);
+            } else {
+                ctx.translate(px, py);
+                ctx.drawImage(images.npc, 0, 0, tileSize, tileSize);
+            }
+            ctx.restore();
+          } 
+             //Enemy
+          if (tile === 'E') {
+            ctx.save();
+            const px = x * tileSize;
+            const py = y * tileSize;
+            if (enemyInteracting && player.facing === "ArrowLeft") {
+                ctx.translate(px + tileSize, py);
+                ctx.scale(-1, 1);
+                ctx.drawImage(images.enemy, 0, 0, tileSize, tileSize);
+            } else {
+                ctx.translate(px, py);
+                ctx.drawImage(images.enemy, 0, 0, tileSize, tileSize);
+            }
+            ctx.restore();
+          }
+            //Lava
+          if (tile === 'R') ctx.drawImage(images.lava, x * tileSize, y * tileSize, tileSize, tileSize);
         }
       }
-      if (!player.isDead)
-        ctx.drawImage(images.player, player.x * tileSize, player.y * tileSize, tileSize, tileSize);
+      if (!player.isDead){
+        ctx.save();
+        const px = player.x * tileSize;
+        const py = player.y * tileSize;
+
+        if (player.facing === "ArrowRight") {
+            // Flip horizontally
+            ctx.translate(px + tileSize, py); // move to right edge of sprite
+            ctx.scale(-1, 1);                 // flip horizontally
+            ctx.drawImage(images.player, 0, 0, tileSize, tileSize);
+        } 
+        else {
+            ctx.translate(px, py);
+            ctx.drawImage(images.player, 0, 0, tileSize, tileSize);
+        }
+        ctx.restore();
+      }
+        
 }
 
 const showMessage=(msg)=>{
     const msgBox = document.getElementById('message');
       msgBox.textContent = msg;
       msgBox.style.color = 'red';
-      setTimeout(() => msgBox.textContent = '', 3000);
+      setTimeout(() => msgBox.textContent = '', 5000);
 }
 
-const handleTile=(tile)=>{
-    if (tile === 'R' && chosenRules.includes("Avoid red tiles.")) {
-        showMessage("You stepped on a red tile! Rule broken.");
-      }
-      if (tile === 'I') {
-         if (player.inventory.length >= 1 && chosenRules.includes("Carry only one item.")) {
-            showMessage("You can't carry more than one item!");
-        } 
-        else {
-            player.inventory.push('item');
-            player.hasWeapon = true;
-            map[player.y][player.x] = 'G';
-            showMessage("You picked up a weapon!");
-        }
-      }
-      if (tile === 'N') {
-        showMessage("NPC says: 'I wouldn't break the rules if I were you, stranger'");    
-      }
-      if (tile === 'E') {
-        if (!player.hasWeapon && chosenRules.includes("Get a weapon before battle.")) {
-            showMessage("You forgot your weapon before battle and got defeated!");
-            endGame(false);
-        } 
-        else {
-            inBattle = true;
-            enemyHealth = 3;
-            showMessage("Enemy encountered! Press 'a' to attack.");
-        }
-      }
-}
 
 const movePlayer=(dx, dy)=>{
     if (gameOver) return;
@@ -149,50 +172,63 @@ const movePlayer=(dx, dy)=>{
     if (target === 'R') {
         player.health = 0;
         updateHealthBar();
-        endGame(false, "You stepped on a red tile and died!");
+        endGame(false, "You stepped on lava and died!");
     }
 }
 
 const interact = () => {
     if (gameOver) return;
 
-    const directionMap = {
-        "ArrowUp": [0, -1],
-        "ArrowDown": [0, 1],
-        "ArrowLeft": [-1, 0],
-        "ArrowRight": [1, 0]
-    };
+    npcInteracting = false;
+    enemyInteracting = false;
 
-    const [dx, dy] = directionMap[player.facing] || [0, 0];
-    const targetX = player.x + dx;
-    const targetY = player.y + dy;
+    const adjacentTiles = [
+    [player.x, player.y - 1], // Up
+    [player.x, player.y + 1], // Down
+    [player.x - 1, player.y], // Left
+    [player.x + 1, player.y]  // Right
+    ];
 
-    const tile = map[targetY]?.[targetX];
+    for (const [tx, ty] of adjacentTiles) {
+        const tile = map[ty]?.[tx];
+        if (!tile) continue;
 
-    switch (tile) {
-        case "I":
-            player.inventory.push('item');
-            player.hasWeapon = true;
-            map[targetY][targetX] = "G";
-            showMessage("You picked up a weapon!");
-            drawMap();
-            break;
-        case "N":
-            showMessage("NPC says: 'I wouldn't break the rules if I were you, stranger...'");
-            break;
-        case "E":
-            if (!player.hasWeapon && chosenRules.includes("Get a weapon before battle.")) {         
-                endGame(false, "You forgot your weapon before battle and got defeated!"); 
-            } else {
-                inBattle = true;
-                currentEnemy = { x: targetX, y: targetY }; // ⬅️ Track enemy position
-                enemyHealth = 3;
-                showMessage("Enemy encountered! Press 'a' to attack.");
-            }
-            break;
-        default:
-            showMessage("There's nothing to interact with.");
+        switch (tile) {
+            case "I":
+                player.inventory.push('item');
+                player.hasWeapon = true;
+                map[ty][tx] = "G";
+                showMessage("You picked up a weapon!");
+                drawMap();
+                return;  // stop after one interaction
+            case "N":               
+                npcInteracting = true; // <-- Set only now
+                if (player.inventory.includes('item')) {
+                    showMessage("NPC says: 'Nice sword you got there! I'm sure you'll be able to defeat the beast with that.'");
+                } else {
+                    showMessage("NPC says: 'I wouldn't break the rules if I were you, stranger'");
+                }
+                drawMap();
+                return;
+            case "E":
+                enemyInteracting = true; // <-- Set only now
+                if (!player.hasWeapon && chosenRules.includes("Prepare yourself.")) {
+                    endGame(false, "You forgot your weapon before battle and got defeated!");
+                } else {
+                    inBattle = true;
+                    currentEnemy = { x: tx, y: ty };
+                    enemyHealth = 3;
+                    showMessage("Enemy encountered! Press 'a' to attack.");
+                }
+                drawMap();
+                return;
+            default:
+                // nothing to interact with in this tile, continue checking others
+                break;
+        }
     }
+    // If no interactions found around player
+    showMessage("There's nothing to interact with.");
 }
 
 const attackEnemy = () => {
@@ -220,12 +256,11 @@ const attackEnemy = () => {
 
         if (enemyHealth <= 0) {
             showMessage("You defeated the enemy! You win! 🎉");
-
             if (currentEnemy) {
                 map[currentEnemy.y][currentEnemy.x] = "G"; // Clear map
+                currentEnemy = null;
                 drawMap(); // Redraw before ending game
             }
-
             endGame(true);
         } 
         else {
@@ -235,9 +270,14 @@ const attackEnemy = () => {
 }
 
 document.addEventListener("keydown", (e)=>{
-    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space"].includes(e.key)) e.preventDefault();
+    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space", " "].includes(e.key)) e.preventDefault();
     
     if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+        npcInteracting = false;
+        enemyInteracting = false;
+    }
+
+    if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
         player.facing = e.key;
     }
 
@@ -250,7 +290,7 @@ document.addEventListener("keydown", (e)=>{
     else if (e.key === 'ArrowDown') movePlayer(0, 1);
     else if (e.key === 'ArrowLeft') movePlayer(-1, 0);
     else if (e.key === 'ArrowRight') movePlayer(1, 0);
-    else if (e.key === ' ') interact();
+    else if (e.key === ' ' || e.key === "Space") interact();
     else if (e.key === 'a') attackEnemy();
 });
 
@@ -271,15 +311,7 @@ const endGame=(won, message=null)=>{
     showRestartButton();
 }
 
-const removeEnemy = (enemy) => {
-  // Remove enemy from enemies array
-  enemies = enemies.filter(e => e !== enemy);
 
-  // Clear the map tile
-  map[enemy.y][enemy.x] = ".";
-
-  drawMap(); // Redraw without enemy
-};
 
 const showRestartButton=()=>{
     const btn = document.getElementById('restart-btn');
@@ -312,4 +344,3 @@ const enemyCounterAttack=()=>{
 updateHealthBar();
 pickRules();
 drawMap();
-

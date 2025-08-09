@@ -41,6 +41,9 @@ canvas {
 #controls li {
   margin: 5px 0;
 }
+#mini-containers{
+  margin-top: 10px;
+}
 #restart-btn {
   margin-top: 10px;
   padding: 10px 20px;
@@ -52,7 +55,6 @@ canvas {
   height: 30px;
   background-color: #ddd;
   border: 2px solid #333;
-  margin: 10px auto;
   position: relative;
 }
 #health-bar {
@@ -73,4 +75,56 @@ canvas {
   font-weight: bold;
   z-index: 2;
   color: black;
+}
+#armor-container {
+  width: 150px;
+  height: 30px;
+  background-color: #ddd;
+  border: 2px solid #333;
+  position: relative;
+}
+
+#armor-bar {
+  height: 100%;
+  width: 0%;               /* empty by default */
+  background-color: #3399FF; /* blue fill */
+  transition: width 0.3s ease;
+}
+
+#armor-bar-text {
+  position: absolute;
+  width: 100%;
+  text-align: center;
+  line-height: 30px;
+  font-weight: bold;
+  z-index: 2;
+  color: black;
+}
+#enemy-health-container {
+  display: none;
+  width: 150px; 
+  height: 40px; 
+  background: #ddd; 
+  border: 2px solid #333; 
+  position: relative; 
+  margin-top: 10px;
+}
+
+#enemy-health-bar {
+  height: 100%; 
+  width: 100%; 
+  background-color: red; 
+  transition: width 0.3s ease;
+}
+
+#enemy-health-text {
+  position: absolute; 
+  width: 100%; 
+  text-align: center; 
+  top: 0; left: 0; 
+  color: black; 
+  font-weight: bold; 
+  line-height: 20px; 
+  user-select: none; 
+  pointer-events: none;
 }

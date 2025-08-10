@@ -5,10 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Desperate RPG</title>
     <link rel="stylesheet" href="style.css"/>
+    <link rel="icon" type="image/x-icon" href="assets/item.png"/>
 </head>
 <body>
+    <h1 id="title">Desperate RPG</h1>
+    <button id="start-game-btn">Start Game</button>  
     <div id="game-container">
-        <canvas id="gameCanvas" width="512" height="512"></canvas>       
+        <canvas id="gameCanvas" width="512" height="512"></canvas>
         <div id="rules">
             <h2 >Rules:</h2>
             <ul id="rule-list"></ul>
@@ -38,8 +41,15 @@
                 <li><strong>Space</strong>: Interact</li>
             </ul>
         </div>
-        </div>
-        
+        <audio id="background-music" src="music/face-myself.mp3" loop></audio>
+        <button id="mute-btn">Mute</button>
+        <audio id="damage-sound-slime" src="music/slime-damage.mp3" preload="auto"></audio>
+        <audio id="enemy-death-sound-slime" src="music/slime-death.mp3" preload="auto"></audio>
+        <audio id="damage-sound-main" src="music/wounded-dafoe.mp3" preload="auto"></audio>
+        <audio id="enemy-death-sound-main" src="music/Demon-DaFoe.mp3" preload="auto"></audio>
+        <audio id="player-attack-sound" src="music/sword-swing.mp3" preload="auto"></audio>
+        <audio id="player-death-sound" src="music/oof.mp3" preload="auto"></audio>
+    </div>
     <script src="script.js"></script>
 </body>
 </html>

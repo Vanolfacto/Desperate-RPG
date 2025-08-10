@@ -26,9 +26,9 @@ let npcInteracting = false;
 let enemyInteracting = false;
 
 const rules=[
-  "Avoid the lava.",
   "Prepare yourself.",
-  "Defeat the great beast."
+  "Defeat the great demon.",
+  "Avoid the lava."
 ];
 
 let gameOver = false;
@@ -60,6 +60,14 @@ const onImageLoad=()=>{
     if(imagesLoaded === totalImages){
         pickRules();
         drawMap();
+
+      //   if(bgMusic.paused) {
+      //   bgMusic.play().catch(() => {
+      //       console.log("Music playback prevented by browser autoplay policies.");
+      //   });
+      //   isMuted = false;
+      //   muteBtn.textContent = 'Mute';
+      // }
     }
 };
 
@@ -115,6 +123,60 @@ const caveMap = [
 ];
 
 let currentMap = map;
+
+const gameContainer = document.getElementById('game-container');
+const bgMusic = document.getElementById('background-music');
+const muteBtn = document.getElementById('mute-btn');
+const startBtn = document.getElementById('start-game-btn');
+const title= document.getElementById('title')
+const controls = document.getElementById('controls');
+const rulesContainer = document.getElementById('rules');
+const miniContainers = document.getElementById('mini-containers');
+const enemyHealthContainer = document.getElementById('enemy-health-container');
+const restartBtn = document.getElementById('restart-btn');
+const playerDeathSound = document.getElementById('player-death-sound');
+
+let isMuted = false;
+
+gameContainer.style.display = 'none';
+controls.style.display = 'none';
+startBtn.style.display = 'block';
+title.style.display = 'block';
+
+startBtn.addEventListener('click', () => {
+  
+    startBtn.style.display = 'none';
+    title.style.display='none';
+    gameContainer.style.display = 'flex';
+    rulesContainer.style.display = 'block';
+    miniContainers.style.display = 'block';      
+    enemyHealthContainer.style.display = 'none'; 
+    controls.style.display = 'block';
+    restartBtn.style.display = 'none';
+
+    // Initialize game UI and state
+    pickRules();
+    drawMap();
+
+    // Start background music
+    bgMusic.play().catch(() => {
+        console.log("Audio playback prevented by browser policy.");
+    });
+    isMuted = false;
+    muteBtn.textContent = 'Mute';
+});
+
+muteBtn.addEventListener('click', () => {
+  if (isMuted) {
+    bgMusic.play();
+    muteBtn.textContent = 'Mute';
+    isMuted = false;
+  } else {
+    bgMusic.pause();
+    muteBtn.textContent = 'Unmute';
+    isMuted = true;
+  }
+});
 
 const pickRules=()=>{
     const shuffled=rules.sort(()=>0.5-Math.random());
@@ -256,10 +318,10 @@ const movePlayer=(dx, dy)=>{
         player.y = 1;
 
          slimes = [
-        { x: 4, y: 2, health: 2 },
-        { x: 3, y: 5, health: 2 },
-        { x: 0, y: 6, health: 2 },
-        { x: 6, y: 6, health: 2 }
+        { x: 4, y: 2, health: 100 },
+        { x: 3, y: 5, health: 100 },
+        { x: 0, y: 6, health: 100 },
+        { x: 6, y: 6, health: 100 }
         ];
 
         // Update caveMap tiles to 'E' where slimes are located
@@ -287,10 +349,10 @@ const movePlayer=(dx, dy)=>{
         }
 
         slimes = [
-        { x: 4, y: 2, health: 2 },
-        { x: 3, y: 5, health: 2 },
-        { x: 0, y: 6, health: 2 },
-        { x: 6, y: 6, health: 2 }
+        { x: 4, y: 2, health: 100 },
+        { x: 3, y: 5, health: 100 },
+        { x: 0, y: 6, health: 100 },
+        { x: 6, y: 6, health: 100 },
         ];
 
         for (const slime of slimes) {
@@ -308,6 +370,8 @@ const movePlayer=(dx, dy)=>{
 
     if (target === 'R') {
         player.health = 0;
+        playerDeathSound.currentTime = 0;
+        playerDeathSound.play().catch(() => {});
         updateHealthBar();
         endGame(false, "You stepped on lava and died!");
     }
@@ -375,7 +439,7 @@ const buyAlastor=()=>{
   }
   player.coins -= 100;
   player.weapon = 'alastor';
-  player.hasWeapon = true;  // keep for compatibility if you check hasWeapon elsewhere
+  player.hasWeapon = true;
   merchantInventory.alastorAvailable = false;
   showMessage("Merchant: Here, your Alastor. If you were my brother, I wouldn't have even thought about selling you this sword.");
   updateCoins();
@@ -438,11 +502,11 @@ const interact = () => {
                 drawMap();
                 return;  // stop after one interaction
             case "N":               
-                npcInteracting = true; // <-- Set only now
+                npcInteracting = true; 
                  if (player.weapon === 'alastor') {
                     showMessage("Pizza-Man: Is that Alastor!? Can I trade my pistols for it?");}
                 else if (player.inventory.includes('item')) {
-                    showMessage("Pizza-Man: Nice sword you got there! I'm sure you'll be able to defeat the beast with that.");
+                    showMessage("Pizza-Man: Nice sword you got there! I'm sure you'll be able fight off at least the slimes in the caves with that.");
                 } else {
                     showMessage("Pizza-Man: I wouldn't break the rules if I were you, stranger.");
                 }
@@ -495,7 +559,6 @@ const interact = () => {
 
                 openMerchantShop();
             default:
-            // nothing to interact with in this tile, continue checking others
             break;
         }
     }
@@ -509,7 +572,7 @@ const updateCoins = () => {
 };
 
 const attackEnemy = () => {
-    if (!inBattle) return;
+    if (!inBattle || player.isDead) return;
 
     enemyInteracting = true;
     drawMap();
@@ -520,23 +583,77 @@ const attackEnemy = () => {
         endGame(false, "You attacked bare-handed and were defeated!");     // End the game and remove the hero
         return;
     }
+
+    const playerAttackSound = document.getElementById('player-attack-sound');
+
+    playerAttackSound.currentTime = 0;  // rewind in case still playing
+    playerAttackSound.play().catch(() => {});
     
     let playerDamage;
     if (player.weapon === 'alastor') {
-        playerDamage = getRandomDamage(100, 150);
+        playerDamage = getRandomDamage(100, 125);
     } else {
         playerDamage = getRandomDamage(50, 75);
     }
 
-    // const playerDamage = (player.weapon === 'alastor') ? 2 : 1;
+    let anticipatedDamage;
+    if (currentMap === caveMap) {
+        anticipatedDamage = getRandomDamage(10, 15);  // Adjust to actual slime damage range
+    } else {
+        anticipatedDamage = getRandomDamage(60, 75);
+    }
+
+    let simulatedArmor = player.armor;
+    let remainingDamage = anticipatedDamage;
+    if (simulatedArmor > 0) {
+        const armorDamage = Math.min(remainingDamage, simulatedArmor);
+        simulatedArmor -= armorDamage;
+        remainingDamage -= armorDamage;
+    }
+    const simulatedHealthAfterHit = player.health - remainingDamage;
+
+    if (simulatedHealthAfterHit <= 0) {
+        enemyCounterAttack(); 
+        
+        showMessage("You tried to attack, but the enemy's counterattack would have killed you first!");
+        return;
+    }
 
     enemyHealth -= playerDamage;
     updateEnemyHealthBar(enemyHealth, maxEnemyHealth);
 
-    enemyCounterAttack();
-        // enemyHealth--;
-        // player.health -= 25;
-        // updateHealthBar();
+    const damageSoundSlime = document.getElementById('damage-sound-slime');
+    const deathSoundSlime = document.getElementById('enemy-death-sound-slime');
+    const damageSoundMain = document.getElementById('damage-sound-main');
+    const deathSoundMain = document.getElementById('enemy-death-sound-main');
+    
+    if(enemyHealth>0){
+      if(currentMap===caveMap){
+        damageSoundSlime.currentTime = 0;
+        damageSoundSlime.play().catch(() => {});
+      }
+      else{
+        // When damaging enemy:
+        damageSoundMain.currentTime = 0;
+        damageSoundMain.play().catch(() => {});
+      }
+    }
+    else{
+       if (currentMap === caveMap) { // slime
+        deathSoundSlime.currentTime = 0;
+        deathSoundSlime.play().catch(() => {});
+    } else {  // main enemy
+        deathSoundMain.currentTime = 0;
+        deathSoundMain.play().catch(() => {});
+    }
+    }
+
+    if(!player.isDead){
+      enemyCounterAttack();
+    }
+    if(player.isDead){
+      return;
+    }
 
     if (player.health <= 0) {
         player.isDead = true;
@@ -544,6 +661,10 @@ const attackEnemy = () => {
         inBattle = false;
         enemyInteracting = false;
         drawMap();
+
+        playerDeathSound.currentTime = 0;
+      playerDeathSound.play().catch(() => {});
+
         showMessage("Your health dropped to zero. You died!");
         showRestartButton();
         return;
@@ -609,7 +730,9 @@ const attackEnemy = () => {
 
 document.addEventListener("keydown", (e)=>{
     if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space", " "].includes(e.key)) e.preventDefault();
-    
+    if (!isMuted && bgMusic.paused) {
+        bgMusic.play().catch(() => {});
+    }
     if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
         npcInteracting = false;
         enemyInteracting = false;
@@ -639,7 +762,7 @@ const endGame=(won, message=null)=>{
     player.isDead=!won;
 
     if (!won) {
-        player.health = 0;  // Set health to 0 only if player lost
+        player.health = 0;
         updateHealthBar();
     }
     
@@ -656,14 +779,122 @@ const showRestartButton=()=>{
     btn.style.display = 'block';
 };
 
+const resetGame = () => {
+    const restartBtn = document.getElementById('restart-btn');
+    const startBtn = document.getElementById('start-game-btn');
+    const title=document.getElementById('title')
+    const gameContainer = document.getElementById('game-container');
+    const rulesContainer = document.getElementById('rules');
+    const miniContainers = document.getElementById('mini-containers');
+    const enemyHealthContainer = document.getElementById('enemy-health-container');
+    const controls = document.getElementById('controls');
+    const bgMusic = document.getElementById('background-music');
+    const muteBtn = document.getElementById('mute-btn');
+
+    // Hide restart and start buttons (don't show the start game button again)
+    restartBtn.style.display = 'none';
+    if (startBtn){
+      startBtn.style.display = 'none';
+      title.style.display='none;'
+    } 
+
+    // Show main game UI
+    gameContainer.style.display = 'flex';
+    rulesContainer.style.display = 'block';
+    miniContainers.style.display = 'block';
+    enemyHealthContainer.style.display = 'none'; // Hide enemy health bar initially
+    controls.style.display = 'block';
+
+    // Reset player stats
+    player.health = player.maxHealth;
+    player.armor = 0;
+    player.coins = 0;
+    player.inventory = [];
+    player.hasWeapon = false;
+    player.weapon = 'basic';
+    player.x = 0; // default starting position
+    player.y = 0;
+    player.facing = 'ArrowRight';
+    player.isDead = false;
+
+    // Reset game state flags
+    gameOver = false;
+    inBattle = false;
+    enemyInteracting = false;
+    npcInteracting = false;
+    currentEnemy = null;
+
+    // Reset current map and background
+    currentMap = map;
+    activeBackground = backgroundImage;
+    map[7][4] = 'I';
+    merchantInventory.alastorAvailable = true;
+
+    // Reset slimes array and cave tiles if used
+    slimes = [
+        { x: 4, y: 2, health: 2 },
+        { x: 3, y: 5, health: 2 },
+        { x: 0, y: 6, health: 2 },
+        { x: 6, y: 6, health: 2 }
+    ];
+
+    // Clear all 'E' tiles on caveMap first
+    for (let y = 0; y < caveMap.length; y++) {
+        for (let x = 0; x < caveMap[y].length; x++) {
+            if (caveMap[y][x] === 'E') {
+                caveMap[y][x] = 'G';
+            }
+        }
+    }
+
+    for (const slime of slimes) {
+        caveMap[slime.y][slime.x] = 'E';
+    }
+
+     // --- Reset main enemy on overworld ---
+    // Clear previous enemy tiles on map
+    for (let y = 0; y < map.length; y++) {
+        for (let x = 0; x < map[y].length; x++) {
+            if (map[y][x] === 'E') {
+                map[y][x] = 'G'; 
+            }
+        }
+    }
+    const mainEnemyPosition = { x: 2, y: 2 };
+    map[mainEnemyPosition.y][mainEnemyPosition.x] = 'E';
+
+    // Reset main enemy health and state variables
+    enemyHealth = 250;
+    maxEnemyHealth = 250;
+    currentEnemy = { x: mainEnemyPosition.x, y: mainEnemyPosition.y };
+
+    // Update UI bars and info
+    updateHealthBar();
+    updateArmorBar();
+    updateCoins();
+
+    // Pick new rules and redraw the map
+    pickRules();
+    drawMap();
+
+    // Start or resume music
+    bgMusic.currentTime = 0;
+    bgMusic.play().catch(() => console.log("Music playback prevented by browser policy."));
+    isMuted = false;
+    muteBtn.textContent = 'Mute';
+};
+
+// Attach resetGame to your restart button click
 document.getElementById('restart-btn').addEventListener('click', () => {
-  location.reload();
+    resetGame();
 });
 
 const updateHealthBar=()=>{
 
     if (player.health < 0) {
         player.health = 0;
+        playerDeathSound.currentTime = 0;
+        playerDeathSound.play().catch(() => {});
     }
   const healthBar = document.getElementById("health-bar");
   const healthText = document.getElementById("health-bar-text");
@@ -673,6 +904,8 @@ const updateHealthBar=()=>{
   healthText.textContent = `Health: ${player.health}`;
 
   if (player.health <= 0) {
+    playerDeathSound.currentTime = 0;
+    playerDeathSound.play().catch(() => {});
     showMessage("Your health is gone! Game over.");
   }
 }
@@ -706,16 +939,18 @@ const enemyCounterAttack=()=>{
     if (!inBattle || !currentEnemy) return;
 
     if (currentMap === caveMap) {
-        // Slime damage between 20-30
-        damage = getRandomDamage(20, 30);
+        // Slime damage between 10-15
+        damage = getRandomDamage(10, 15);
     } else {
-        // Main enemy damage between 55-70
-        damage = getRandomDamage(55, 70);
+        // Main enemy damage between 55-65
+        damage = getRandomDamage(55, 65);
     }
 
     applyDamageToPlayer(damage)
+
     showMessage(`Enemy counterattacked! You lost ${damage} health.`);
     updateHealthBar();
+    updateArmorBar();
 
     if (player.health <= 0) {
         player.isDead = true;
@@ -723,7 +958,10 @@ const enemyCounterAttack=()=>{
         inBattle = false;
         enemyInteracting = false;
         drawMap();
+        playerDeathSound.currentTime = 0;
+        playerDeathSound.play().catch(() => {});
         showMessage("You were defeated by the enemy’s counterattack!");
+
         showRestartButton();
   }
 }

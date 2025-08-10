@@ -7,6 +7,10 @@ body {
   align-items: center;
   height: 100vh;
 }
+#title{
+  margin-bottom: 25%;
+  font-size: 5rem;
+}
 #game-container {
   display: flex;
   justify-content: center;
@@ -127,4 +131,55 @@ canvas {
   line-height: 20px; 
   user-select: none; 
   pointer-events: none;
+}
+
+#game-container,
+#rules,
+#mini-containers,
+#enemy-health-container,
+#controls,
+#restart-btn {
+  display: none;
+}
+
+#mute-btn, #start-game-btn{
+  background-color: #333;       /* Dark background */
+  color: white;                 /* White text */
+  border: none;                 /* Remove default border */
+  padding: 12px 24px;           /* Comfortable padding */
+  font-size: 16px;              /* Easy-to-read font size */
+  font-weight: bold;
+  border-radius: 8px;           /* Rounded corners */
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3); /* Subtle shadow */
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  cursor: pointer;
+  user-select: none;   
+}
+
+/* Hover effect */
+#mute-btn:hover, #start-game-btn:hover {
+  background-color: #555;       /* Lighter background on hover */
+ 
+}
+
+/* Active/click effect */
+#mute-btn:active, #start-game-btn:active {
+  background-color: #222;
+
+}
+
+/* Focus outline for accessibility */
+#mute-btn:focus, #start-game-btn:focus {
+  outline: 2px solid #66ccff;
+  outline-offset: 2px;
+}
+
+/* Position the Start Game button nicely if over canvas (optional example) */
+#start-game-btn {
+  /* Example of centering over canvas if embedded inside container */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
 }

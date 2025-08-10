@@ -310,6 +310,7 @@ const movePlayer=(dx, dy)=>{
     player.x = newX;
     player.y = newY;
 
+    // Cave entrance transition
     if (target === 'X' && currentMap===map) {
         currentMap = caveMap;
         activeBackground = newBackgroundImage;
@@ -323,6 +324,7 @@ const movePlayer=(dx, dy)=>{
         { x: 6, y: 6, health: 100 }
         ];
 
+        // Update caveMap tiles to 'E' where slimes are located
         for (const slime of slimes) {
             caveMap[slime.y][slime.x] = 'E';
         }
@@ -498,7 +500,7 @@ const interact = () => {
                 map[ty][tx] = "G";
                 showMessage("You picked up a weapon!");
                 drawMap();
-                return;
+                return;  // stop after one interaction
             case "N":               
                 npcInteracting = true; 
                  if (player.weapon === 'alastor') {
@@ -578,13 +580,13 @@ const attackEnemy = () => {
     if (!player.hasWeapon) {
         player.health = 0;  // Set health to zero
         updateHealthBar();  // Update UI
-        endGame(false, "You attacked bare-handed and were defeated!");
+        endGame(false, "You attacked bare-handed and were defeated!");     // End the game and remove the hero
         return;
     }
 
     const playerAttackSound = document.getElementById('player-attack-sound');
 
-    playerAttackSound.currentTime = 0;  
+    playerAttackSound.currentTime = 0;  // rewind in case still playing
     playerAttackSound.play().catch(() => {});
     
     let playerDamage;
@@ -596,7 +598,7 @@ const attackEnemy = () => {
 
     let anticipatedDamage;
     if (currentMap === caveMap) {
-        anticipatedDamage = getRandomDamage(10, 15);  
+        anticipatedDamage = getRandomDamage(10, 15);  // Adjust to actual slime damage range
     } else {
         anticipatedDamage = getRandomDamage(60, 75);
     }
@@ -789,7 +791,7 @@ const resetGame = () => {
     const bgMusic = document.getElementById('background-music');
     const muteBtn = document.getElementById('mute-btn');
 
-    // Hide restart and start buttons
+    // Hide restart and start buttons (don't show the start game button again)
     restartBtn.style.display = 'none';
     if (startBtn){
       startBtn.style.display = 'none';
@@ -800,7 +802,7 @@ const resetGame = () => {
     gameContainer.style.display = 'flex';
     rulesContainer.style.display = 'block';
     miniContainers.style.display = 'block';
-    enemyHealthContainer.style.display = 'none'; 
+    enemyHealthContainer.style.display = 'none'; // Hide enemy health bar initially
     controls.style.display = 'block';
 
     // Reset player stats

@@ -18,20 +18,20 @@
             <div id="message"></div>
             <div id="mini-containers">
             <div id="health-container">
-            <div id="health-bar-text">Health: 100</div>
-            <div id="health-bar"></div>
+                <div id="health-bar-text">Health: 100</div>
+                <div id="health-bar"></div>
             </div>
             <div id="armor-container">
-            <div id="armor-bar-text">Armor: 0</div>
-            <div id="armor-bar"></div>
+                <div id="armor-bar-text">Armor: 0</div>
+                <div id="armor-bar"></div>
             </div>
             <div id="coins">Coins: 0</div> 
             <div id="enemy-health-container">
-            <div id="enemy-health-bar"></div>
-            <div id="enemy-health-text">Enemy Health: 100</div>
+                <div id="enemy-health-bar"></div>
+                <div id="enemy-health-text">Enemy Health: 100</div>
             </div>
             <button id="restart-btn" style="display:none;">Restart</button>
-        </div>
+            </div>
         </div>
         <div id="controls">
             <h2>Controls</h2>
@@ -41,14 +41,18 @@
                 <li><strong>Space</strong>: Interact</li>
             </ul>
         </div>
-        <audio id="background-music" src="music/face-myself.mp3" loop></audio>
-        <button id="mute-btn">Mute</button>
-        <audio id="damage-sound-slime" src="music/slime-damage.mp3" preload="auto"></audio>
-        <audio id="enemy-death-sound-slime" src="music/slime-death.mp3" preload="auto"></audio>
-        <audio id="damage-sound-main" src="music/wounded-dafoe.mp3" preload="auto"></audio>
-        <audio id="enemy-death-sound-main" src="music/Demon-DaFoe.mp3" preload="auto"></audio>
-        <audio id="player-attack-sound" src="music/sword-swing.mp3" preload="auto"></audio>
-        <audio id="player-death-sound" src="music/oof.mp3" preload="auto"></audio>
+        <div id="sound-effects">
+            <audio id="background-music" src="music/face-myself.mp3" loop></audio>
+            <button id="mute-btn">Mute</button>
+            <audio id="damage-sound-slime" src="music/slime-damage.mp3" preload="auto"></audio>
+            <audio id="enemy-death-sound-slime" src="music/slime-death.mp3" preload="auto"></audio>
+            <audio id="damage-sound-main" src="music/wounded-dafoe.mp3" preload="auto"></audio>
+            <audio id="enemy-death-sound-main" src="music/Demon-DaFoe.mp3" preload="auto"></audio>
+            <audio id="player-attack-sound" src="music/sword-swing.mp3" preload="auto"></audio>
+            <audio id="player-death-sound" src="music/oof.mp3" preload="auto"></audio>
+            <audio id="npc-interact-pizzaman" src="music/jackpot.mp3" preload="auto"></audio>
+            <audio id="merchant-interact" src="music/power.mp3" preload="auto"></audio>
+        </div>
     </div>
     <script src="script.js"></script>
 </body>

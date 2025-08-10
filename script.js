@@ -24,6 +24,7 @@ let merchantInventory = {
 
 let npcInteracting = false;
 let enemyInteracting = false;
+let merchantInteracting = false;
 
 const rules=[
   "Prepare yourself.",
@@ -107,9 +108,9 @@ const map = [
       ['G','G','G','G','G','G','R','G'],
       ['G','G','G','G','N','G','G','G'],
       ['G','G','G','G','G','G','G','G'],
-      ['G','R','G','G','G','G','G','X'],
+      ['G','R','G','G','R','G','G','X'],
       ['G','G','G','G','I','G','G','G']
-    ];
+];
 
 const caveMap = [
     ['C','C','C','C','C','C','C','C'],
@@ -134,7 +135,15 @@ const rulesContainer = document.getElementById('rules');
 const miniContainers = document.getElementById('mini-containers');
 const enemyHealthContainer = document.getElementById('enemy-health-container');
 const restartBtn = document.getElementById('restart-btn');
+
 const playerDeathSound = document.getElementById('player-death-sound');
+const npcInteractPizzaManSound=document.getElementById('npc-interact-pizzaman');
+const merchantInteractSound=document.getElementById('merchant-interact');
+const damageSoundSlime = document.getElementById('damage-sound-slime');
+const deathSoundSlime = document.getElementById('enemy-death-sound-slime');
+const damageSoundMain = document.getElementById('damage-sound-main');
+const deathSoundMain = document.getElementById('enemy-death-sound-main');
+const playerAttackSound = document.getElementById('player-attack-sound');
 
 let isMuted = false;
 
@@ -370,8 +379,6 @@ const movePlayer=(dx, dy)=>{
 
     if (target === 'R') {
         player.health = 0;
-        playerDeathSound.currentTime = 0;
-        playerDeathSound.play().catch(() => {});
         updateHealthBar();
         endGame(false, "You stepped on lava and died!");
     }
@@ -474,8 +481,6 @@ const applyDamageToPlayer=(damage)=>{
   updateArmorBar();
 }
 
-
-
 const interact = () => {
     if (gameOver) return;
 
@@ -503,6 +508,10 @@ const interact = () => {
                 return;  // stop after one interaction
             case "N":               
                 npcInteracting = true; 
+
+                npcInteractPizzaManSound.currentTime = 0;
+                npcInteractPizzaManSound.play().catch(() => {});
+
                  if (player.weapon === 'alastor') {
                     showMessage("Pizza-Man: Is that Alastor!? Can I trade my pistols for it?");}
                 else if (player.inventory.includes('item')) {
@@ -555,6 +564,10 @@ const interact = () => {
                 }
             case "M":
                 merchantInteracting = true;
+
+                merchantInteractSound.volume=0.8;
+                merchantInteractSound.currentTime = 0;
+                merchantInteractSound.play().catch(() => {});
                 drawMap();
 
                 openMerchantShop();
@@ -584,9 +597,8 @@ const attackEnemy = () => {
         return;
     }
 
-    const playerAttackSound = document.getElementById('player-attack-sound');
-
-    playerAttackSound.currentTime = 0;  // rewind in case still playing
+    playerAttackSound.volume = 0.5;
+    playerAttackSound.currentTime = 0;
     playerAttackSound.play().catch(() => {});
     
     let playerDamage;
@@ -622,27 +634,25 @@ const attackEnemy = () => {
     enemyHealth -= playerDamage;
     updateEnemyHealthBar(enemyHealth, maxEnemyHealth);
 
-    const damageSoundSlime = document.getElementById('damage-sound-slime');
-    const deathSoundSlime = document.getElementById('enemy-death-sound-slime');
-    const damageSoundMain = document.getElementById('damage-sound-main');
-    const deathSoundMain = document.getElementById('enemy-death-sound-main');
-    
     if(enemyHealth>0){
       if(currentMap===caveMap){
+        damageSoundSlime.volume = 0.5;
         damageSoundSlime.currentTime = 0;
         damageSoundSlime.play().catch(() => {});
       }
       else{
         // When damaging enemy:
+        damageSoundMain.volume = 0.8;
         damageSoundMain.currentTime = 0;
         damageSoundMain.play().catch(() => {});
       }
     }
     else{
        if (currentMap === caveMap) { // slime
-        deathSoundSlime.currentTime = 0;
+        deathSoundSlime.volume = 0.5;
         deathSoundSlime.play().catch(() => {});
     } else {  // main enemy
+        deathSoundMain.volume = 0.8;
         deathSoundMain.currentTime = 0;
         deathSoundMain.play().catch(() => {});
     }
@@ -661,10 +671,6 @@ const attackEnemy = () => {
         inBattle = false;
         enemyInteracting = false;
         drawMap();
-
-        playerDeathSound.currentTime = 0;
-      playerDeathSound.play().catch(() => {});
-
         showMessage("Your health dropped to zero. You died!");
         showRestartButton();
         return;
@@ -764,8 +770,11 @@ const endGame=(won, message=null)=>{
     if (!won) {
         player.health = 0;
         updateHealthBar();
+
+        playerDeathSound.volume = 0.7;
+        playerDeathSound.currentTime = 0;
+        playerDeathSound.play().catch(() => {});
     }
-    
 
     showMessage(message ?? (won ? "You win!" : "You died..."));
     drawMap();
@@ -795,8 +804,10 @@ const resetGame = () => {
     restartBtn.style.display = 'none';
     if (startBtn){
       startBtn.style.display = 'none';
-      title.style.display='none;'
     } 
+    if(title){
+      title.style.display='none;'
+    }
 
     // Show main game UI
     gameContainer.style.display = 'flex';
@@ -893,8 +904,6 @@ const updateHealthBar=()=>{
 
     if (player.health < 0) {
         player.health = 0;
-        playerDeathSound.currentTime = 0;
-        playerDeathSound.play().catch(() => {});
     }
   const healthBar = document.getElementById("health-bar");
   const healthText = document.getElementById("health-bar-text");
@@ -904,8 +913,6 @@ const updateHealthBar=()=>{
   healthText.textContent = `Health: ${player.health}`;
 
   if (player.health <= 0) {
-    playerDeathSound.currentTime = 0;
-    playerDeathSound.play().catch(() => {});
     showMessage("Your health is gone! Game over.");
   }
 }
@@ -958,6 +965,7 @@ const enemyCounterAttack=()=>{
         inBattle = false;
         enemyInteracting = false;
         drawMap();
+        playerDeathSound.volume = 0.7;
         playerDeathSound.currentTime = 0;
         playerDeathSound.play().catch(() => {});
         showMessage("You were defeated by the enemy’s counterattack!");
